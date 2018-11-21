@@ -12,17 +12,19 @@ Module Module1
         Dim values As List(Of String) = New List(Of String)
 
         Try
-            For Each line In File.ReadLines(Directory.GetCurrentDirectory() & "\proxysources.txt")
-                Dim value As String = New System.Net.WebClient().DownloadString(line)
-                Dim matches As MatchCollection = Regex.Matches(value, "(\d{1,3}\.){3}\d{1,3}") '':(\d+)"
+            Parallel.ForEach(File.ReadLines(Directory.GetCurrentDirectory() & "\proxysources.txt"),' New ParallelOptions With {.MaxDegreeOfParallelism = 10},
+                             Sub(line)
+                                 Dim value As String = New System.Net.WebClient().DownloadString(line)
+                                 Dim matches As MatchCollection = Regex.Matches(value, "(\d{1,3}\.){3}\d{1,3}") '':(\d+)"
 
-                For Each m As Match In matches
-                    For Each c As Capture In m.Captures
-                        values.Add(c.Value)
-                    Next
-                Next
+                                 For Each m As Match In matches
+                                     For Each c As Capture In m.Captures
+                                         values.Add(c.Value)
+                                         Console.WriteLine(c.Value & " " & line)
+                                     Next
+                                 Next
 
-            Next
+                             End Sub)
         Catch ex As Exception
             Console.WriteLine(ex)
         End Try
